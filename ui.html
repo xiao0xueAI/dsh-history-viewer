@@ -22,19 +22,27 @@
  #right header{padding:10px;border-bottom:1px solid #2a2f37;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
  #body{overflow:auto;padding:14px;flex:1;word-break:break-word}
  #title{font-weight:600}
- /* 对话布局：我说的话靠右（蓝），DSH 的回复靠左（绿），工具/思考等次要内容窄条淡色 */
- .msg{margin:0 0 14px;padding:10px 12px;border-radius:10px;background:#1a1e24;border-left:3px solid #3a4048;max-width:92%}
- .msg.user{margin-left:auto;margin-right:0;background:#152238;border-left:none;border-right:4px solid #3b82f6}
- .msg.assistant{margin-left:0;margin-right:auto;background:#16241d;border-left:4px solid #22c55e}
- .msg.tool,.msg.tool-result,.msg.ctx,.msg.reasoning{max-width:100%;background:#171b21;opacity:.92}
- .msg.tool{border-left-color:#eab308}.msg.tool-result{border-left-color:#a855f7}
- .msg.ctx{border-left-color:#64748b;color:#9aa4b2}.msg.reasoning{border-left-color:#f97316;color:#a9b1bd}
- .who{font-size:12px;color:#8b95a3;margin-bottom:6px;font-weight:600}
- .msg.user .who{color:#7fb0ff;text-align:right}
- .msg.assistant .who{color:#7ee2a8}
- .msg.tool .who{color:#e5c76b}.msg.tool-result .who{color:#c9a2f5}
- .daysep{display:flex;align-items:center;gap:10px;margin:18px 0 14px;color:#7b8695;font-size:12px}
- .daysep:before,.daysep:after{content:'';flex:1;height:1px;background:#2c333d}
+ /* ===== 微信式气泡对话：我说的话靠右（绿气泡），DSH 靠左（灰气泡），带头像与尖角 ===== */
+ #body{background:#101418}
+ .msg{display:flex;gap:8px;align-items:flex-start;margin:0 0 8px}
+ .msg.same{margin-top:-3px}
+ .msg.user{flex-direction:row-reverse}
+ .avatar{flex:0 0 32px;width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;
+         font-size:15px;background:#2a3340;color:#dbe4ef;user-select:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.04)}
+ .msg.user .avatar{background:#2f6b3a;color:#eaffea}
+ .bubble{position:relative;max-width:min(1150px,94%);padding:9px 13px;border-radius:8px;
+         background:#252d37;color:#e8edf4;word-break:break-word;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+ .msg.user .bubble{max-width:min(760px,72%);background:#2f6b3a;color:#f2fff2}
+ .bubble:before{content:'';position:absolute;top:11px;width:0;height:0;border:6px solid transparent}
+ .msg.assistant .bubble:before{left:-11px;border-right-color:#252d37}
+ .msg.user .bubble:before{right:-11px;border-left-color:#2f6b3a}
+ .who{display:none}
+ .timesep{text-align:center;margin:16px 0 10px;color:#6b7684;font-size:12px}
+ .sysrow{text-align:center;margin:7px 0}
+ .sysrow .tag{display:inline-block;max-width:82%;padding:3px 10px;border-radius:10px;font-size:12px;
+              background:#1a2027;border:1px solid #2b323b;color:#8b95a3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .sysrow .tag b{color:#a9b4c2;font-weight:600}
+ .msg.flash .bubble,.sysrow.flash .tag{animation:flashbg 1.8s ease-out 1}
  mark{background:#facc15;color:#111;border-radius:2px;padding:0 1px}
  .pager{display:flex;gap:8px;align-items:center;margin:0 0 12px;padding:6px 8px;border:1px solid #2a2f37;border-radius:8px;background:#171b21}
  .pager button{font-size:12px;cursor:pointer}
@@ -415,33 +423,51 @@ function pagerBar() {
 function render(r, jumpT) {
   const b = $('#body'); b.innerHTML = '';
   b.appendChild(pagerBar());
-  let lastDay = '';
+  let prevT = 0, prevKind = '';
+  const hm = (t) => new Date(t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   for (const line of r.lines) {
-    const day = line.t ? new Date(line.t).toDateString() : '';
-    if (day && day !== lastDay) {              // 按天插入分隔，长会话里更容易定位
-      lastDay = day;
+    const t = line.t || 0;
+    const kind = line.kind || '';
+    const isChat = kind === 'user' || kind === 'assistant';
+    const dayChanged = prevT && new Date(prevT).toDateString() !== new Date(t).toDateString();
+    if (!prevT || dayChanged || (t - prevT) > 5 * 60 * 1000) {   // 微信式时间分隔：换天显示日期，否则只在间隔 >5 分钟时显示
       const sep = document.createElement('div');
-      sep.className = 'daysep';
-      sep.textContent = new Date(line.t).toLocaleDateString();
+      sep.className = 'timesep';
+      sep.textContent = (!prevT || dayChanged) ? new Date(t).toLocaleDateString() + ' ' + hm(t) : hm(t);
       b.appendChild(sep);
+      prevKind = '';
     }
-    const d = document.createElement('div');
-    d.className = 'msg ' + (line.kind || '');
-    d.dataset.t = line.t;
-    const who = document.createElement('div');
-    who.className = 'who';
-    who.textContent = (KIND[line.kind] || line.kind) + ' · ' + new Date(line.t).toLocaleString();
-    d.appendChild(who);
-    const content = document.createElement('div');
-    const text = unflat(line.text || '');
-    if (renderMd) { content.className = 'md'; content.innerHTML = md(text); }
-    else { content.className = 'raw'; content.textContent = text; }
-    d.appendChild(content);
-    b.appendChild(d);
-    if (q) highlightDom(content, q);
+    const row = document.createElement('div');
+    row.dataset.t = t;
+    if (isChat) {
+      row.className = 'msg ' + kind + (kind === prevKind ? ' same' : '');
+      const av = document.createElement('div');
+      av.className = 'avatar';
+      av.textContent = kind === 'user' ? '我' : '🐳';
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      const content = document.createElement('div');
+      const text = unflat(line.text || '');
+      if (renderMd) { content.className = 'md'; content.innerHTML = md(text); }
+      else { content.className = 'raw'; content.textContent = text; }
+      bubble.appendChild(content);
+      row.appendChild(av);
+      row.appendChild(bubble);
+      b.appendChild(row);
+      if (q) highlightDom(content, q);
+    } else {
+      row.className = 'sysrow';
+      const tag = document.createElement('span');
+      tag.className = 'tag';
+      const one = unflat(line.text || '').split(LF).join(' ');
+      tag.innerHTML = '<b>' + esc(KIND[kind] || kind) + '</b> · ' + esc(one.slice(0, 90)) + (one.length > 90 ? '…' : '');
+      row.appendChild(tag);
+      b.appendChild(row);
+    }
+    prevT = t; prevKind = kind;
   }
   if (jumpT) {
-    const el = b.querySelector('.msg[data-t="' + jumpT + '"]');
+    const el = b.querySelector('[data-t="' + jumpT + '"]');
     if (el) { el.scrollIntoView({ block: 'center' }); el.classList.add('flash'); setTimeout(function () { el.classList.remove('flash'); }, 1900); }
   } else b.scrollTop = 0;
 }
