@@ -1,6 +1,6 @@
 {
   "name": "dsh-history-viewer",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "DSH 会话历史查看器：项目内检索、渲染阅读、一键导出对话。会话历史不再依赖任何第三方插件。 · Browse, search and export your DSH session history — offline, no dependencies.",
   "type": "module",
   "license": "MIT",
