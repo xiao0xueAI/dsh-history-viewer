@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><title>DSH 历史查看</title>
+<style>
+ :root{color-scheme:dark}
+ *{box-sizing:border-box}
+ body{margin:0;font:14px/1.6 system-ui,"Segoe UI",sans-serif;background:#14161a;color:#e6e6e6;display:flex;height:100vh}
+ #left{width:320px;border-right:1px solid #2a2f37;display:flex;flex-direction:column;min-width:320px}
+ #left header{padding:10px;border-bottom:1px solid #2a2f37}
+ input,button,select{font:inherit;background:#1d2128;color:#e6e6e6;border:1px solid #333a44;border-radius:6px;padding:6px 8px}
+ input{width:100%}
+ select{width:100%;margin-top:6px}
+ #list{overflow:auto;flex:1}
+ .item{padding:8px 10px;border-bottom:1px solid #22262d;cursor:pointer;display:flex;gap:6px;align-items:flex-start}
+ .item:hover{background:#1d2128}.item.sel{background:#243044}
+ .item .body{flex:1;min-width:0}
+ .t{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ .m{color:#8b95a3;font-size:12px}
+ .pin{border:none;background:none;padding:0 2px;font-size:13px;opacity:.35;cursor:pointer}
+ .pin.on{opacity:1}
+ .badge{display:inline-block;background:#2b4a7a;color:#dbeafe;border-radius:0;padding:0 5px;font-size:11px;margin-left:6px}
+ #right{flex:1;display:flex;flex-direction:column;min-width:0}
+ #right header{padding:10px;border-bottom:1px solid #2a2f37;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+ #body{overflow:auto;padding:14px;flex:1;word-break:break-word}
+ #title{font-weight:600}
+ .msg{margin:0 0 14px;padding:10px 12px;border-radius:8px;background:#1a1e24;border-left:3px solid #3a4048}
+ .user{border-left-color:#3b82f6}.assistant{border-left-color:#22c55e}.tool{border-left-color:#eab308}
+ .tool-result{border-left-color:#a855f7}.ctx{border-left-color:#64748b;color:#9aa4b2}.reasoning{border-left-color:#f97316;color:#a9b1bd}
+ .who{font-size:12px;color:#8b95a3;margin-bottom:6px}
+ mark{background:#facc15;color:#111;border-radius:2px;padding:0 1px}
+ .pager{display:flex;gap:8px;align-items:center;margin:0 0 12px;padding:6px 8px;border:1px solid #2a2f37;border-radius:8px;background:#171b21}
+ .pager button{font-size:12px;cursor:pointer}
+ @keyframes flashbg{0%{background:#403a12}70%{background:#2a2a16}100%{background:#1a1e24}}
+ .msg.flash{animation:flashbg 1.8s ease-out 1}
+ .seg{display:flex;gap:4px;margin-top:8px}
+ .seg button{flex:1;padding:4px 6px;font-size:12px;cursor:pointer}
+ .seg button.on{background:#2b4a7a;border-color:#3b82f6;color:#fff}
+ a.btn{font-size:12px;text-decoration:none;color:#cfe0ff;border:1px solid #333a44;border-radius:6px;padding:4px 8px;background:#1d2128;white-space:nowrap;cursor:pointer}
+ .raw{white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:13px}
+ .focusbar{margin-top:8px;display:flex;gap:6px;align-items:center}
+ .focusbar button{flex:1;font-size:12px;cursor:pointer}
+ .focusbar button.on{background:#4a3a12;border-color:#eab308;color:#ffe9a8}
+ .banner{margin-top:8px;padding:6px 8px;border-radius:6px;font-size:12px;line-height:1.5;background:#2a2410;border:1px solid #6b5a12;color:#ffe9a8}
+ .banner.err{background:#2c1416;border-color:#7f1d1d;color:#fecaca}
+ /* 渲染后的 Markdown */
+ .md>*:first-child{margin-top:0}.md>*:last-child{margin-bottom:0}
+ .md h1,.md h2,.md h3,.md h4,.md h5,.md h6{margin:16px 0 8px;line-height:1.3}
+ .md h1{font-size:20px;border-bottom:1px solid #2c333d;padding-bottom:4px}
+ .md h2{font-size:17px}.md h3{font-size:15px}.md h4,.md h5,.md h6{font-size:14px;color:#c8d0da}
+ .md p{margin:8px 0}.md ul,.md ol{margin:8px 0;padding-left:24px}.md li{margin:3px 0}
+ .md blockquote{margin:8px 0;padding:6px 12px;border-left:3px solid #4b5563;background:#171b21;color:#b9c2ce}
+ .md code{background:#262c35;padding:1px 5px;border-radius:4px;font-family:ui-monospace,Consolas,monospace;font-size:13px}
+ .md pre{background:#0f1216;border:1px solid #262c35;border-radius:6px;padding:10px;overflow:auto;margin:8px 0}
+ .md pre code{background:none;padding:0;font-size:13px;line-height:1.5}
+ .md table{border-collapse:collapse;margin:10px 0;display:block;overflow:auto;max-width:100%}
+ .md th,.md td{border:1px solid #333a44;padding:5px 9px;text-align:left;vertical-align:top}
+ .md th{background:#232a33;font-weight:600}.md tbody tr:nth-child(even){background:#191d23}
+ .md hr{border:none;border-top:1px solid #2c333d;margin:14px 0}.md a{color:#7cb2ff}.md img{max-width:100%}
+ /* 搜索结果 */
+ .sum{margin:0 0 12px;color:#9aa4b2;font-size:13px}
+ .group{margin:18px 0 6px;padding-bottom:4px;border-bottom:1px solid #2c333d}
+ .group .badge{background:#3a3a12;color:#ffe9a8}
+ .morebtn{margin-top:6px;font-size:12px;cursor:pointer}
+ .hit{border:1px solid #262c35;border-radius:8px;background:#1a1e24;padding:8px 10px;margin:8px 0;cursor:pointer}
+ .hit:hover{border-color:#3b82f6}
+ .hm{font-size:12px;color:#8b95a3;margin-bottom:4px}
+ .snip{max-height:300px;overflow:hidden;font-size:13.5px;position:relative}
+ .snip.md{white-space:normal}
+ .snip.md:after{content:'';position:absolute;left:0;right:0;bottom:0;height:22px;background:linear-gradient(transparent,#1a1e24)}
+ .hintline{font-size:11px;color:#5c6673;margin-top:6px}
+ .hit:hover .hintline{color:#7cb2ff}
+ .ctx{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#6d7683;font-size:11.5px;font-style:italic}
+ .ctx.before{margin-bottom:5px;border-left:2px solid #2a2f37;padding-left:6px}
+ .ctx.after{margin-top:5px;border-left:2px solid #2a2f37;padding-left:6px}
+</style></head><body>
+<div id="left">
+  <header>
+    <input id="q" placeholder="搜索对话（回车）…">
+    <select id="proj" title="项目（工作区）：只显示/只搜索这个项目的会话"></select>
+    <div class="seg" id="seg"></div>
+    <div class="focusbar" id="focusbar"></div>
+    <div class="banner" id="banner" style="display:none"></div>
+    <div class="m" id="stat" style="margin-top:6px"></div>
+  </header>
+  <div id="list"></div>
+</div>
+<div id="right">
+  <header>
+    <b id="title">选择左侧会话，或先搜索</b>
+    <span class="m" id="meta"></span>
+    <span style="flex:1"></span>
+    <span class="m" id="perwrap">每个会话显示
+      <select id="per" style="width:auto;display:inline-block;padding:2px 4px;margin-left:4px">
+        <option value="8">8 处</option>
+        <option value="20">20 处</option>
+        <option value="50">50 处</option>
+        <option value="all">全部</option>
+      </select>
+    </span>
+    <a class="btn" id="fmt">原文</a>
+    <a class="btn" id="dl" style="display:none">导出这段对话</a>
+  </header>
+  <div id="body"></div>
+</div>
+<script>
+let sessions = [], cur = null, q = '', lastSearch = null, projects = [];
+let scope = localStorage.getItem('dshHistoryScope') || 'dialog';
+let renderMd = localStorage.getItem('dshHistoryRender') !== 'raw';
+let perMode = localStorage.getItem('dshHistoryPer') || '20';
+let focusState = { active: false, ids: [], activeIds: [], pinnedHere: 0, project: '', total: 0, shown: 0 };
+const SCOPES = [['dialog', '只看对话'], ['tools', '含工具'], ['all', '全部']];
+const KIND = { user: '我', assistant: 'DSH', tool: '工具调用', 'tool-result': '工具结果', ctx: '上下文注入', reasoning: '思考' };
+const NL = String.fromCharCode(92) + 'n';
+const LF = String.fromCharCode(10);
+const $ = (s) => document.querySelector(s);
+const API = (typeof window !== 'undefined' && window.__HV_BASE__) || '';
+const TOKEN = (typeof window !== 'undefined' && window.__HV_TOKEN__) || '';
+/** 所有 /api 请求都带本次运行令牌（宿主侧据此拒绝无令牌访问） */
+const api = (p) => {
+  const url = API + p;
+  const init = TOKEN ? { headers: { 'x-hv-token': TOKEN } } : undefined;
+  return window.fetch(url, init);
+};
+
+function esc(s) {
+  return String(s).replace(/[<>&"']/g, function (c) {
+    return c === '<' ? '&lt;' : c === '>' ? '&gt;' : c === '&' ? '&amp;' : c === '"' ? '&quot;' : '&#39;';
+  });
+}
+/* 上下文预览：去标记 + 截断，并标明方向（↑ 上一句 / ↓ 下一句） */
+function ctxLine(s, arrow) {
+  const t = plainMd(flat(s));
+  return arrow + ' · ' + (t.length > 110 ? t.slice(0, 110) + '…' : t);
+}
+
+/* ---------- Markdown 渲染（零依赖；先转义再排版） ---------- */
+function inlineMd(s) {
+  s = esc(s);
+  s = s.replace(/`([^`]+)`/g, function (m, c) { return '<code>' + c + '</code>'; });
+  s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/(^|[^*\w])\*([^*\n]+)\*/g, '$1<em>$2</em>');
+  s = s.replace(/~~([^~]+)~~/g, '<del>$1</del>');
+  s = s.replace(/\[([^\]]*)\]\(([^)\s]+)\)/g, function (m, t, u) {
+    if (!/^https?:\/\//i.test(u)) return esc(t || u);        // 只允许 http(s)：挡 javascript:/data: 等注入
+    return '<a href="' + esc(u) + '" target="_blank" rel="noreferrer noopener">' + esc(t || u) + '</a>';
+  });
+  s = s.replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/g, function (m, p, u) { return p + '<a href="' + esc(u) + '" target="_blank" rel="noreferrer noopener">' + esc(u) + '</a>'; });
+  return s;
+}
+function md(src) {
+  const lines = String(src).split(LF);
+  let html = '', para = [], i = 0;
+  const flush = function () { if (para.length) { html += '<p>' + inlineMd(para.join(LF)) + '</p>'; para = []; } };
+  const isRow = (l) => /^\s*\|.*\|\s*$/.test(l);
+  const isSep = (l) => /^\s*\|[\s:|-]+\|\s*$/.test(l);
+  const cells = (l) => l.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(function (c) { return c.trim(); });
+  while (i < lines.length) {
+    const line = lines[i];
+    const fence = line.match(/^\s*(`{3,}|~{3,})/);
+    if (fence) {
+      flush();
+      const mark = fence[1][0], buf = [];
+      i++;
+      while (i < lines.length && !(new RegExp('^\\s*' + mark + '{3,}\\s*$')).test(lines[i])) { buf.push(lines[i]); i++; }
+      i++;
+      html += '<pre><code>' + esc(buf.join(LF)) + '</code></pre>';
+      continue;
+    }
+    if (isRow(line) && i + 1 < lines.length && isSep(lines[i + 1])) {
+      flush();
+      const head = cells(line); i += 2; const rows = [];
+      while (i < lines.length && isRow(lines[i])) { rows.push(cells(lines[i])); i++; }
+      html += '<table><thead><tr>' + head.map(function (c) { return '<th>' + inlineMd(c) + '</th>'; }).join('') +
+        '</tr></thead><tbody>' + rows.map(function (r) { return '<tr>' + r.map(function (c) { return '<td>' + inlineMd(c) + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table>';
+      continue;
+    }
+    const h = line.match(/^(#{1,6})\s+(.*)$/);
+    if (h) { flush(); const n = h[1].length; html += '<h' + n + '>' + inlineMd(h[2]) + '</h' + n + '>'; i++; continue; }
+    if (/^\s*([-*_])\s*\1\s*\1[\s\1]*$/.test(line)) { flush(); html += '<hr>'; i++; continue; }
+    if (/^\s*>\s?/.test(line)) {
+      flush(); const buf = [];
+      while (i < lines.length && /^\s*>\s?/.test(lines[i])) { buf.push(lines[i].replace(/^\s*>\s?/, '')); i++; }
+      html += '<blockquote>' + md(buf.join(LF)) + '</blockquote>';
+      continue;
+    }
+    if (/^\s*([-*+]|\d+[.)])\s+/.test(line)) {
+      flush();
+      const ordered = /^\s*\d+[.)]\s+/.test(line), items = [];
+      while (i < lines.length && /^\s*([-*+]|\d+[.)])\s+/.test(lines[i])) { items.push(lines[i].replace(/^\s*([-*+]|\d+[.)])\s+/, '')); i++; }
+      const tag = ordered ? 'ol' : 'ul';
+      html += '<' + tag + '>' + items.map(function (t) { return '<li>' + inlineMd(t) + '</li>'; }).join('') + '</' + tag + '>';
+      continue;
+    }
+    if (!line.trim()) { flush(); i++; continue; }
+    para.push(line); i++;
+  }
+  flush();
+  return html;
+}
+function highlightDom(root, kw) {
+  if (!kw) return 0;
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+  const targets = []; let n;
+  while ((n = walker.nextNode())) if (n.nodeValue && n.nodeValue.toLowerCase().includes(kw.toLowerCase())) targets.push(n);
+  let count = 0;
+  for (const node of targets) {
+    const text = node.nodeValue, low = text.toLowerCase(), k = kw.toLowerCase();
+    const frag = document.createDocumentFragment();
+    let pos = 0, p;
+    while ((p = low.indexOf(k, pos)) !== -1) {
+      if (p > pos) frag.appendChild(document.createTextNode(text.slice(pos, p)));
+      const m = document.createElement('mark');
+      m.textContent = text.slice(p, p + kw.length);
+      frag.appendChild(m); count++;
+      pos = p + kw.length;
+    }
+    if (pos < text.length) frag.appendChild(document.createTextNode(text.slice(pos)));
+    node.parentNode.replaceChild(frag, node);
+  }
+  return count;
+}
+function hl(s, kw) {
+  if (!kw) return esc(s);
+  const low = String(s).toLowerCase(), k = kw.toLowerCase();
+  let out = '', i = 0;
+  for (;;) {
+    const p = low.indexOf(k, i);
+    if (p < 0) { out += esc(String(s).slice(i)); break; }
+    out += esc(String(s).slice(i, p)) + '<mark>' + esc(String(s).slice(p, p + k.length)) + '</mark>';
+    i = p + k.length;
+  }
+  return out;
+}
+
+/* ---------- 顶栏控件 ---------- */
+function renderSeg() {
+  const box = $('#seg'); box.innerHTML = '';
+  for (const pair of SCOPES) {
+    const b = document.createElement('button');
+    b.textContent = pair[1];
+    if (pair[0] === scope) b.className = 'on';
+    b.onclick = function () { scope = pair[0]; localStorage.setItem('dshHistoryScope', scope); renderSeg(); if (cur) openSession(cur.id); if (q) search(); };
+    box.appendChild(b);
+  }
+  $('#fmt').textContent = renderMd ? '原文' : '渲染';
+  const fb = $('#focusbar'); fb.innerHTML = '';
+  const btn = document.createElement('button');
+  const here = focusState.pinnedHere || 0;
+  if (focusState.active) {
+    btn.className = 'on';
+    btn.textContent = '📌 只看固定的 ' + focusState.activeIds.length + ' 个（点此显示本项目全部）';
+    btn.onclick = function () { setFocus({ active: 0 }); };
+  } else if (here > 0) {
+    btn.className = 'on';
+    btn.textContent = '📌 只看固定的 ' + here + ' 个（当前显示本项目全部 ' + focusState.total + ' 个）';
+    btn.onclick = function () { setFocus({ active: 1 }); };
+  } else {
+    btn.textContent = '本项目 ' + focusState.total + ' 个会话（点会话左侧 📌 可固定）';
+    btn.onclick = function () { alert('先点会话左边的 📌 固定你需要的会话，之后就能一键只显示它们。'); };
+  }
+  fb.appendChild(btn);
+}
+async function setFocus(patch) {
+  const qs = Object.keys(patch).map(function (k) { return k + '=' + encodeURIComponent(patch[k]); }).join('&');
+  const r = await (await api('/api/focus?' + qs)).json();
+  focusState = { active: r.active, ids: r.ids, activeIds: focusState.activeIds, pinnedHere: focusState.pinnedHere, project: r.project || '', total: focusState.total, shown: focusState.shown };
+  await loadSessions();
+  if (q) search();
+  renderSeg();
+}
+async function togglePin(id, ev) {
+  if (ev && ev.stopPropagation) ev.stopPropagation();
+  const r = await (await api('/api/focus?toggle=' + encodeURIComponent(id))).json();
+  focusState = { active: r.active, ids: r.ids, activeIds: focusState.activeIds, pinnedHere: focusState.pinnedHere, project: r.project || '', total: focusState.total, shown: focusState.shown };
+  await loadSessions();
+  if (q) search();
+  renderSeg();
+}
+
+/* ---------- 左侧会话列表 ---------- */
+function setBanner(text, isErr) {
+  const el = $('#banner');
+  if (!text) { el.style.display = 'none'; el.textContent = ''; return; }
+  el.style.display = '';
+  el.className = 'banner' + (isErr ? ' err' : '');
+  el.textContent = text;
+}
+let retryTimer = null;
+async function loadSessions() {
+  if (retryTimer) { clearTimeout(retryTimer); retryTimer = null; }
+  let res;
+  try {
+    res = await api('/api/sessions');
+  } catch (e) {
+    setBanner('加载失败：' + e.message + '（3 秒后自动重试）', true);
+    retryTimer = setTimeout(loadSessions, 3000);
+    return;
+  }
+  if (!res.ok) {
+    setBanner(res.status === 401
+      ? '访问令牌已过期（服务重启过）—— 刷新页面即可 · 自动重试中'
+      : '接口返回 HTTP ' + res.status + '（3 秒后自动重试）', true);
+    retryTimer = setTimeout(loadSessions, 3000);
+    return;
+  }
+  const r = await res.json();
+  sessions = r.sessions || [];
+  projects = r.projects || [];
+  focusState = { active: r.focus.active, ids: r.focus.ids, activeIds: r.focus.activeIds || [], pinnedHere: r.focus.pinnedHere || 0, project: r.focus.project || '', total: r.focus.total, shown: r.focus.shown };
+  renderSeg();
+  renderProjects();
+  renderList();
+  if (!r.ready && !sessions.length) {
+    setBanner(r.building
+      ? '正在后台建立索引（首次约 6 秒，不占用 DSH 主线程）… 自动刷新中'
+      : '还没有索引数据，正在触发重建… 自动刷新中');
+    retryTimer = setTimeout(loadSessions, 2500);
+    return;
+  }
+  setBanner('');
+}
+function renderProjects() {
+  const sel = $('#proj');
+  sel.innerHTML = '';
+  const all = document.createElement('option');
+  all.value = '';
+  all.textContent = '全部项目（' + projects.reduce(function (n, p) { return n + p.count; }, 0) + ' 个会话）';
+  sel.appendChild(all);
+  for (const p of projects) {
+    const o = document.createElement('option');
+    o.value = p.name;
+    o.textContent = p.name + '（' + p.count + ' 个会话）' + (focusState.ids.length && focusState.active ? '' : '');
+    sel.appendChild(o);
+  }
+  sel.value = focusState.project || '';
+}
+function hitCountOf(id) { return (lastSearch && lastSearch.counts[id]) || 0; }
+function renderList() {
+  const l = $('#list'); l.innerHTML = '';
+  const scopeText = focusState.project ? '项目「' + focusState.project + '」' : '全部项目';
+  $('#stat').textContent = focusState.active
+    ? scopeText + ' · 只看固定的 ' + sessions.length + ' 个会话'
+    : scopeText + ' · ' + sessions.length + ' 个会话';
+  for (const s of sessions) {
+    const d = document.createElement('div');
+    d.className = 'item' + (cur && cur.id === s.id ? ' sel' : '');
+    const pinned = focusState.ids.includes(s.id);
+    const hits = hitCountOf(s.id);
+    d.innerHTML = '<button class="pin' + (pinned ? ' on' : '') + '" title="' + (pinned ? '从固定中移除' : '固定此会话（只看固定的）') + '">📌</button>' +
+      '<div class="body"><div class="t">' + esc(s.title || '(无标题)') + (hits ? '<span class="badge">' + hits + ' 处命中</span>' : '') + '</div>' +
+      '<div class="m">' + new Date(s.last || s.created).toLocaleString() + ' · ' + s.lines + '条 · ' + s.mb + 'MB · ' + esc(s.project || '') + '</div></div>';
+    d.querySelector('.pin').onclick = function (ev) { togglePin(s.id, ev); };
+    d.onclick = function () { openSession(s.id); };
+    l.appendChild(d);
+  }
+}
+
+/* ---------- 正文 ---------- */
+function render(r, jumpT) {
+  const b = $('#body'); b.innerHTML = '';
+  for (const line of r.lines) {
+    const d = document.createElement('div');
+    d.className = 'msg ' + (line.kind || '');
+    d.dataset.t = line.t;
+    const who = document.createElement('div');
+    who.className = 'who';
+    who.textContent = (KIND[line.kind] || line.kind) + ' · ' + new Date(line.t).toLocaleString();
+    d.appendChild(who);
+    const content = document.createElement('div');
+    const text = unflat(line.text || '');
+    if (renderMd) { content.className = 'md'; content.innerHTML = md(text); }
+    else { content.className = 'raw'; content.textContent = text; }
+    d.appendChild(content);
+    b.appendChild(d);
+    if (q) highlightDom(content, q);
+  }
+  if (jumpT) {
+    const el = b.querySelector('.msg[data-t="' + jumpT + '"]');
+    if (el) { el.scrollIntoView({ block: 'center' }); el.classList.add('flash'); setTimeout(function () { el.classList.remove('flash'); }, 1900); }
+  } else b.scrollTop = 0;
+}
+let page = { id: '', offset: 0, limit: 300, total: 0, hasBefore: false, hasAfter: false };
+async function openSession(id, jumpT, offset) {
+  const url = '/api/text?id=' + encodeURIComponent(id) + '&scope=' + scope + '&limit=' + page.limit +
+    (jumpT ? '&around=' + jumpT : '&offset=' + (offset || 0));
+  const r = await (await api(url)).json();
+  page = { id: r.id, offset: r.offset, limit: r.limit, total: r.total, hasBefore: r.hasBefore, hasAfter: r.hasAfter };
+  cur = { id: r.id };
+  $('#title').textContent = r.title || r.id;
+  const dl = $('#dl'); dl.style.display = ''; dl.href = API + '/api/export?id=' + encodeURIComponent(r.id) + '&scope=' + scope + '&token=' + encodeURIComponent(TOKEN);
+  render(r, jumpT);
+  renderList();
+}
+function pagerBar() {
+  const bar = document.createElement('div');
+  bar.className = 'pager';
+  const prev = document.createElement('button');
+  prev.type = 'button'; prev.textContent = '← 更早'; prev.disabled = !page.hasBefore;
+  prev.onclick = function () { openSession(page.id, 0, Math.max(0, page.offset - page.limit)); };
+  const next = document.createElement('button');
+  next.type = 'button'; next.textContent = '更晚 →'; next.disabled = !page.hasAfter;
+  next.onclick = function () { openSession(page.id, 0, page.offset + page.limit); };
+  const info = document.createElement('span');
+  info.className = 'm';
+  info.textContent = '第 ' + (page.offset + 1) + '–' + Math.min(page.offset + page.limit, page.total) + ' 条 / 共 ' + page.total + ' 条';
+  bar.appendChild(prev); bar.appendChild(info); bar.appendChild(next);
+  return bar;
+}
+function render(r, jumpT) {
+  const b = $('#body'); b.innerHTML = '';
+  b.appendChild(pagerBar());
+  for (const line of r.lines) {
+    const d = document.createElement('div');
+    d.className = 'msg ' + (line.kind || '');
+    d.dataset.t = line.t;
+    const who = document.createElement('div');
+    who.className = 'who';
+    who.textContent = (KIND[line.kind] || line.kind) + ' · ' + new Date(line.t).toLocaleString();
+    d.appendChild(who);
+    const content = document.createElement('div');
+    const text = unflat(line.text || '');
+    if (renderMd) { content.className = 'md'; content.innerHTML = md(text); }
+    else { content.className = 'raw'; content.textContent = text; }
+    d.appendChild(content);
+    b.appendChild(d);
+    if (q) highlightDom(content, q);
+  }
+  if (jumpT) {
+    const el = b.querySelector('.msg[data-t="' + jumpT + '"]');
+    if (el) { el.scrollIntoView({ block: 'center' }); el.classList.add('flash'); setTimeout(function () { el.classList.remove('flash'); }, 1900); }
+  } else b.scrollTop = 0;
+}
+
+/* ---------- 搜索（宽栏分组显示） ---------- */
+async function search() {
+  q = $('#q').value.trim();
+  if (!q) { lastSearch = null; return; }
+  let res;
+  try {
+    res = await api('/api/search?q=' + encodeURIComponent(q) + '&limit=2000&per=' + encodeURIComponent(perMode) + '&scope=' + scope);
+  } catch (e) { setBanner('搜索失败：' + e.message, true); return; }
+  if (!res.ok) { setBanner('搜索被拒绝：HTTP ' + res.status + (res.status === 401 ? '（令牌过期，刷新页面即可）' : ''), true); return; }
+  setBanner('');
+  const r = await res.json();
+  const counts = {}; (r.groups || []).forEach(function (g) { counts[g.id] = g.count; });
+  lastSearch = { counts: counts, groups: r.groups || [], total: r.total || 0 };
+  sessions = sessions.filter(function (s) { return counts[s.id]; });
+  renderList();
+  $('#title').textContent = '搜索：' + q;
+  $('#meta').textContent = (focusState.project ? '项目「' + focusState.project + '」内搜索' : '全部项目搜索') +
+    ' · 范围：' + SCOPES.filter(function (x) { return x[0] === scope; })[0][1] + (focusState.active ? ' · 仅固定会话' : '');
+  $('#dl').style.display = 'none';
+  cur = null;
+
+  const b = $('#body'); b.innerHTML = '';
+  const wrap = document.createElement('div');
+  const sum = document.createElement('div');
+  sum.className = 'sum';
+  sum.textContent = '共 ' + lastSearch.total + ' 处命中，分布在 ' + lastSearch.groups.length + ' 个会话' +
+    (focusState.project ? '（项目：' + focusState.project + '）' : '') +
+    (focusState.active ? '（只搜固定的 ' + focusState.activeIds.length + ' 个会话）' : '') +
+    '。每个会话显示：' + (perMode === 'all' ? '全部' : '前 ' + perMode + ' 处') + '，右上角可改；点任意一条 → 直接跳到原文位置并高亮。';
+  wrap.appendChild(sum);
+  for (const g of lastSearch.groups) {
+    const gh = document.createElement('div');
+    gh.className = 'group';
+    gh.innerHTML = '<b>' + esc(g.title || g.id) + '</b><span class="badge">' + g.count + ' 处命中</span>' +
+      '<div class="m">' + esc(g.workspace) + (g.count > g.shown ? ' · 下面显示前 ' + g.shown + ' 处' : '') + '</div>';
+    if (g.count > g.shown) {
+      const more = document.createElement('button');
+      more.className = 'morebtn';
+      more.textContent = '显示其余 ' + (g.count - g.shown) + ' 处（共 ' + g.count + ' 处）';
+      more.onclick = function () { perMode = 'all'; localStorage.setItem('dshHistoryPer', 'all'); $('#per').value = 'all'; search(); };
+      gh.appendChild(more);
+    }
+    wrap.appendChild(gh);
+    for (const h of r.hits.filter(function (x) { return x.id === g.id; })) {
+      const card = document.createElement('div');
+      card.className = 'hit';
+      const head = document.createElement('div');
+      head.className = 'hm';
+      head.textContent = (KIND[h.kind] || h.kind) + ' · ' + new Date(h.t).toLocaleString();
+      card.appendChild(head);
+      if (h.before) {
+        const b = document.createElement('div');
+        b.className = 'ctx before';
+        b.textContent = ctxLine(h.before, '上文');
+        card.appendChild(b);
+      }
+      const body = document.createElement('div');
+      body.className = 'snip md';
+      body.innerHTML = md(unflat(h.text));
+      card.appendChild(body);
+      if (h.after) {
+        const a = document.createElement('div');
+        a.className = 'ctx after';
+        a.textContent = ctxLine(h.after, '下文');
+        card.appendChild(a);
+      }
+      const more = document.createElement('div');
+      more.className = 'hintline';
+      more.textContent = '点这里跳到原文位置（含完整上下文）→';
+      card.appendChild(more);
+      card.onclick = function () { openSession(h.id, h.t); };
+      if (q) highlightDom(body, q);
+      wrap.appendChild(card);
+    }
+  }
+  if (!lastSearch.groups.length) wrap.insertAdjacentHTML('beforeend', '<p class="m">没有命中。</p>');
+  b.appendChild(wrap);
+}
+
+$('#q').addEventListener('keydown', function (e) { if (e.key === 'Enter') search(); });
+$('#proj').addEventListener('change', function () { setFocus({ project: $('#proj').value }); });
+$('#per').addEventListener('change', function () { perMode = $('#per').value; localStorage.setItem('dshHistoryPer', perMode); if (q) search(); });
+$('#fmt').addEventListener('click', function () {
+  renderMd = !renderMd;
+  localStorage.setItem('dshHistoryRender', renderMd ? 'md' : 'raw');
+  renderSeg();
+  if (cur) openSession(cur.id);
+});
+renderSeg();
+$('#per').value = perMode;
+loadSessions();
+</script></body></html>

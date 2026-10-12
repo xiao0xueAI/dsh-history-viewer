@@ -1,0 +1,6 @@
+url: https://github.com/CHANGE-ME/dsh-history-viewer
+name: CHANGE-ME/dsh-history-viewer
+category: ui
+description:
+  en: Browses, searches and exports local DSH session history in the Web UI, with per-project filtering, pinned sessions, rendered Markdown results and jump-to-message search. Reads session logs directly and needs no third-party plugin.
+  zh: 在 Web UI 里浏览、检索、导出本地 DSH 会话历史：按项目（工作区）过滤、可固定会话、搜索结果渲染 Markdown 并能直接跳到原文位置。直接读取会话日志，不依赖任何第三方插件。

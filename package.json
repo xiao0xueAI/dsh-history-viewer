@@ -1,0 +1,67 @@
+{
+  "name": "dsh-history-viewer",
+  "version": "1.0.0",
+  "description": "DSH 会话历史查看器：项目内检索、渲染阅读、一键导出对话。会话历史不再依赖任何第三方插件。 · Browse, search and export your DSH session history — offline, no dependencies.",
+  "type": "module",
+  "license": "MIT",
+  "repository": { "type": "git", "url": "git+https://github.com/CHANGE-ME/dsh-history-viewer.git" },
+  "homepage": "https://github.com/CHANGE-ME/dsh-history-viewer#readme",
+  "bugs": { "url": "https://github.com/CHANGE-ME/dsh-history-viewer/issues" },
+  "publishConfig": { "access": "public" },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "history",
+    "session",
+    "search",
+    "history-viewer"
+  ],
+  "engines": {
+    "node": ">=22.15"
+  },
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./package.json": "./package.json",
+    "./locale/*.json": "./locale/*.json"
+  },
+  "files": [
+    "cordis.patch.yml",
+    "index.js",
+    "client.js",
+    "ui.html",
+    "lib/",
+    "locale/",
+    "icon.svg",
+    "README.md",
+    "LICENSE"
+  ],
+  "icon": "./icon.svg",
+  "meta": {
+    "title": "历史查看器 · History Viewer",
+    "description": "浏览、检索、导出你的 DSH 会话历史（按项目/会话筛选，Markdown 渲染，纯本地读取）"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh": "^0.1.7-rc.2 || ^0.2.0-rc.1 || ^0.2.0-rc.2 || ^0.2.1-alpha.1 || ^0.2.1-alpha.2"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/dsh": { "optional": true }
+  },
+  "dsh": {
+    "manifestVersion": 1,
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "engines": {
+      "dsh": ">=0.1.7-rc.2"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-sidebar"
+      ]
+    }
+  }
+}

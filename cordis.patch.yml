@@ -1,0 +1,5 @@
+# 把本插件作为 bundle 层插入 profile 阵容（package.json 的 dsh.bundle.patch）。
+# 行内容为按包名注册的裸插件行：exports "." 的 Host 半体运行在宿主进程。
+- insert:
+    - id: dsh-history-viewer
+      name: 'dsh-history-viewer'
