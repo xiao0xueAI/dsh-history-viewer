@@ -22,10 +22,19 @@
  #right header{padding:10px;border-bottom:1px solid #2a2f37;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
  #body{overflow:auto;padding:14px;flex:1;word-break:break-word}
  #title{font-weight:600}
- .msg{margin:0 0 14px;padding:10px 12px;border-radius:8px;background:#1a1e24;border-left:3px solid #3a4048}
- .user{border-left-color:#3b82f6}.assistant{border-left-color:#22c55e}.tool{border-left-color:#eab308}
- .tool-result{border-left-color:#a855f7}.ctx{border-left-color:#64748b;color:#9aa4b2}.reasoning{border-left-color:#f97316;color:#a9b1bd}
- .who{font-size:12px;color:#8b95a3;margin-bottom:6px}
+ /* 对话布局：我说的话靠右（蓝），DSH 的回复靠左（绿），工具/思考等次要内容窄条淡色 */
+ .msg{margin:0 0 14px;padding:10px 12px;border-radius:10px;background:#1a1e24;border-left:3px solid #3a4048;max-width:92%}
+ .msg.user{margin-left:auto;margin-right:0;background:#152238;border-left:none;border-right:4px solid #3b82f6}
+ .msg.assistant{margin-left:0;margin-right:auto;background:#16241d;border-left:4px solid #22c55e}
+ .msg.tool,.msg.tool-result,.msg.ctx,.msg.reasoning{max-width:100%;background:#171b21;opacity:.92}
+ .msg.tool{border-left-color:#eab308}.msg.tool-result{border-left-color:#a855f7}
+ .msg.ctx{border-left-color:#64748b;color:#9aa4b2}.msg.reasoning{border-left-color:#f97316;color:#a9b1bd}
+ .who{font-size:12px;color:#8b95a3;margin-bottom:6px;font-weight:600}
+ .msg.user .who{color:#7fb0ff;text-align:right}
+ .msg.assistant .who{color:#7ee2a8}
+ .msg.tool .who{color:#e5c76b}.msg.tool-result .who{color:#c9a2f5}
+ .daysep{display:flex;align-items:center;gap:10px;margin:18px 0 14px;color:#7b8695;font-size:12px}
+ .daysep:before,.daysep:after{content:'';flex:1;height:1px;background:#2c333d}
  mark{background:#facc15;color:#111;border-radius:2px;padding:0 1px}
  .pager{display:flex;gap:8px;align-items:center;margin:0 0 12px;padding:6px 8px;border:1px solid #2a2f37;border-radius:8px;background:#171b21}
  .pager button{font-size:12px;cursor:pointer}
@@ -406,7 +415,16 @@ function pagerBar() {
 function render(r, jumpT) {
   const b = $('#body'); b.innerHTML = '';
   b.appendChild(pagerBar());
+  let lastDay = '';
   for (const line of r.lines) {
+    const day = line.t ? new Date(line.t).toDateString() : '';
+    if (day && day !== lastDay) {              // 按天插入分隔，长会话里更容易定位
+      lastDay = day;
+      const sep = document.createElement('div');
+      sep.className = 'daysep';
+      sep.textContent = new Date(line.t).toLocaleDateString();
+      b.appendChild(sep);
+    }
     const d = document.createElement('div');
     d.className = 'msg ' + (line.kind || '');
     d.dataset.t = line.t;
