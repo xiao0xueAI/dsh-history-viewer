@@ -20,7 +20,7 @@
  .badge{display:inline-block;background:#2b4a7a;color:#dbeafe;border-radius:0;padding:0 5px;font-size:11px;margin-left:6px}
  #right{flex:1;display:flex;flex-direction:column;min-width:0}
  #right header{padding:10px;border-bottom:1px solid #2a2f37;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
- #body{overflow:auto;padding:14px;flex:1;word-break:break-word}
+ #body{overflow:auto;padding:14px;flex:1;word-break:break-word;--fs:15px}
  #title{font-weight:600}
  /* ===== 微信式气泡对话：我说的话靠右（绿气泡），DSH 靠左（灰气泡），带头像与尖角 ===== */
  #body{background:#101418}
@@ -30,11 +30,12 @@
  .avatar{flex:0 0 32px;width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;
          font-size:15px;background:#2a3340;color:#dbe4ef;user-select:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.04)}
  .msg.user .avatar{background:#2f6b3a;color:#eaffea}
- .bubble{position:relative;max-width:min(1150px,94%);padding:9px 13px;border-radius:8px;
-         background:#252d37;color:#e8edf4;word-break:break-word;box-shadow:0 1px 2px rgba(0,0,0,.25)}
- .msg.user .bubble{max-width:min(760px,72%);background:#2f6b3a;color:#f2fff2}
+ .bubble{position:relative;max-width:min(1150px,94%);padding:10px 14px;border-radius:8px;
+         background:#28323d;color:#f2f6fa;word-break:break-word;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+ .msg.user .bubble{max-width:min(760px,72%);background:#2f6b3a;color:#f4fff4}
  .bubble:before{content:'';position:absolute;top:11px;width:0;height:0;border:6px solid transparent}
- .msg.assistant .bubble:before{left:-11px;border-right-color:#252d37}
+ .msg.assistant .bubble:before{left:-11px;border-right-color:#28323d}
+ .raw{white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:calc(var(--fs,15px) - 1.5px);line-height:1.6;color:#eef2f7}
  .msg.user .bubble:before{right:-11px;border-left-color:#2f6b3a}
  .who{display:none}
  .timesep{text-align:center;margin:16px 0 10px;color:#6b7684;font-size:12px}
@@ -58,19 +59,22 @@
  .focusbar button.on{background:#4a3a12;border-color:#eab308;color:#ffe9a8}
  .banner{margin-top:8px;padding:6px 8px;border-radius:6px;font-size:12px;line-height:1.5;background:#2a2410;border:1px solid #6b5a12;color:#ffe9a8}
  .banner.err{background:#2c1416;border-color:#7f1d1d;color:#fecaca}
- /* 渲染后的 Markdown */
+ /* 渲染后的 Markdown —— 正文提亮、字号可调（--fs 由工具栏控制） */
+ .md{font-size:var(--fs,15px);line-height:1.75;color:#f2f6fa}
  .md>*:first-child{margin-top:0}.md>*:last-child{margin-bottom:0}
- .md h1,.md h2,.md h3,.md h4,.md h5,.md h6{margin:16px 0 8px;line-height:1.3}
- .md h1{font-size:20px;border-bottom:1px solid #2c333d;padding-bottom:4px}
- .md h2{font-size:17px}.md h3{font-size:15px}.md h4,.md h5,.md h6{font-size:14px;color:#c8d0da}
- .md p{margin:8px 0}.md ul,.md ol{margin:8px 0;padding-left:24px}.md li{margin:3px 0}
- .md blockquote{margin:8px 0;padding:6px 12px;border-left:3px solid #4b5563;background:#171b21;color:#b9c2ce}
- .md code{background:#262c35;padding:1px 5px;border-radius:4px;font-family:ui-monospace,Consolas,monospace;font-size:13px}
- .md pre{background:#0f1216;border:1px solid #262c35;border-radius:6px;padding:10px;overflow:auto;margin:8px 0}
- .md pre code{background:none;padding:0;font-size:13px;line-height:1.5}
- .md table{border-collapse:collapse;margin:10px 0;display:block;overflow:auto;max-width:100%}
- .md th,.md td{border:1px solid #333a44;padding:5px 9px;text-align:left;vertical-align:top}
- .md th{background:#232a33;font-weight:600}.md tbody tr:nth-child(even){background:#191d23}
+ .md h1,.md h2,.md h3,.md h4,.md h5,.md h6{margin:16px 0 8px;line-height:1.35;color:#ffffff}
+ .md h1{font-size:calc(var(--fs,15px) + 5px);border-bottom:1px solid #3a444f;padding-bottom:4px}
+ .md h2{font-size:calc(var(--fs,15px) + 2px)}.md h3{font-size:calc(var(--fs,15px) + 1px)}
+ .md h4,.md h5,.md h6{font-size:var(--fs,15px);color:#dbe3ec}
+ .md p{margin:9px 0}.md ul,.md ol{margin:9px 0;padding-left:24px}.md li{margin:4px 0}
+ .md strong,.md b{color:#ffffff;font-weight:600}
+ .md blockquote{margin:9px 0;padding:6px 12px;border-left:3px solid #55606d;background:#1b222a;color:#d3dae3}
+ .md code{background:#141a20;color:#ffd9a3;padding:1px 5px;border-radius:4px;font-family:ui-monospace,Consolas,monospace;font-size:calc(var(--fs,15px) - 1.5px)}
+ .md pre{background:#0d1216;border:1px solid #333d48;border-radius:6px;padding:11px;overflow:auto;margin:9px 0}
+ .md pre code{background:none;padding:0;color:#e9eef4;font-size:calc(var(--fs,15px) - 1.5px);line-height:1.6}
+ .md table{border-collapse:collapse;margin:11px 0;display:block;overflow:auto;max-width:100%;font-size:var(--fs,15px)}
+ .md th,.md td{border:1px solid #3b4652;padding:6px 11px;text-align:left;vertical-align:top}
+ .md th{background:#2b333d;font-weight:600;color:#ffffff}.md tbody tr:nth-child(even){background:#1d242c}
  .md hr{border:none;border-top:1px solid #2c333d;margin:14px 0}.md a{color:#7cb2ff}.md img{max-width:100%}
  /* 搜索结果 */
  .sum{margin:0 0 12px;color:#9aa4b2;font-size:13px}
@@ -88,7 +92,61 @@
  .ctx{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#6d7683;font-size:11.5px;font-style:italic}
  .ctx.before{margin-bottom:5px;border-left:2px solid #2a2f37;padding-left:6px}
  .ctx.after{margin-top:5px;border-left:2px solid #2a2f37;padding-left:6px}
-</style></head><body>
+
+ /* ===== 浅色主题（默认）：对齐微信的观感 —— 浅灰底、自己的消息亮绿配深色字、对方白底气泡 ===== */
+ @keyframes flashbgLight{0%{background:#ffe9a8}70%{background:#fff6d8}100%{background:transparent}}
+ body.theme-light{background:#f5f5f5;color:#111}
+ body.theme-light #left{background:#fafafa;border-right-color:#e0e0e0}
+ body.theme-light #left header,body.theme-light #right header{background:#fafafa;border-bottom-color:#e3e3e3}
+ body.theme-light input,body.theme-light button,body.theme-light select{background:#fff;color:#111;border-color:#dcdcdc}
+ body.theme-light a.btn{background:#fff;color:#333;border-color:#dcdcdc}
+ body.theme-light .item{border-bottom-color:#eee}
+ body.theme-light .item:hover{background:#f0f0f0}
+ body.theme-light .item.sel{background:#e9e9e9}
+ body.theme-light .m{color:#8a8a8a}
+ body.theme-light .badge{background:#d6e4ff;color:#1b3a66}
+ body.theme-light .seg button.on{background:#d6e6ff;border-color:#8fb8ff;color:#12325c}
+ body.theme-light #body{background:#ededed}
+ body.theme-light #title{color:#111}
+ body.theme-light .timesep{color:#a8a8a8}
+ body.theme-light .avatar{background:#d9d9d9;color:#333;box-shadow:none}
+ body.theme-light .msg.user .avatar{background:#7ed957;color:#123}
+ body.theme-light .bubble{background:#fff;color:#111;box-shadow:0 1px 2px rgba(0,0,0,.07)}
+ body.theme-light .msg.assistant .bubble:before{border-right-color:#fff}
+ body.theme-light .msg.user .bubble{background:#95ec69;color:#111}
+ body.theme-light .msg.user .bubble:before{border-left-color:#95ec69}
+ body.theme-light .msg.flash .bubble,body.theme-light .sysrow.flash .tag{animation:flashbgLight 1.8s ease-out 1}
+ body.theme-light .sysrow .tag{background:#dcdcdc;border-color:#d4d4d4;color:#666}
+ body.theme-light .sysrow .tag b{color:#3f3f3f}
+ body.theme-light .pager{background:#fff;border-color:#e2e2e2}
+ body.theme-light .focusbar button.on{background:#fff3c4;border-color:#e0b400;color:#6b5300}
+ body.theme-light .banner{background:#fff8e1;border-color:#ffe082;color:#7a5c00}
+ body.theme-light .banner.err{background:#ffebee;border-color:#ef9a9a;color:#b71c1c}
+ body.theme-light .md{color:#1a1a1a}
+ body.theme-light .md h1,body.theme-light .md h2,body.theme-light .md h3,body.theme-light .md h4,body.theme-light .md h5,body.theme-light .md h6{color:#000}
+ body.theme-light .md h1{border-bottom-color:#e0e0e0}
+ body.theme-light .md strong,body.theme-light .md b{color:#000}
+ body.theme-light .md blockquote{background:#f7f7f7;border-left-color:#d0d0d0;color:#444}
+ body.theme-light .md code{background:#f0f0f0;color:#c7254e}
+ body.theme-light .md pre{background:#f8f8f8;border-color:#e2e2e2}
+ body.theme-light .md pre code{color:#24292e}
+ body.theme-light .md th,body.theme-light .md td{border-color:#dcdcdc}
+ body.theme-light .md th{background:#f0f0f0;color:#000}
+ body.theme-light .md tbody tr:nth-child(even){background:#fafafa}
+ body.theme-light .md a{color:#576b95}
+ body.theme-light .md hr{border-top-color:#e0e0e0}
+ body.theme-light .raw{color:#1a1a1a}
+ body.theme-light .sum{color:#666}
+ body.theme-light .hit{background:#fff;border-color:#e2e2e2}
+ body.theme-light .hit:hover{border-color:#8fb8ff}
+ body.theme-light .snip.md:after{background:linear-gradient(transparent,#fff)}
+ body.theme-light .hintline{color:#9a9a9a}
+ body.theme-light .hit:hover .hintline{color:#576b95}
+ body.theme-light .group{border-bottom-color:#e0e0e0;color:#333}
+ body.theme-light .ctx{color:#999}
+ body.theme-light .ctx.before,body.theme-light .ctx.after{border-left-color:#e0e0e0}
+ body.theme-light mark{background:#ffe58f;color:#111}
+</style></head><body class="theme-light">
 <div id="left">
   <header>
     <input id="q" placeholder="搜索对话（回车）…">
@@ -111,6 +169,20 @@
         <option value="20">20 处</option>
         <option value="50">50 处</option>
         <option value="all">全部</option>
+      </select>
+    </span>
+    <span class="m" id="themewrap">主题
+      <select id="theme" style="width:auto;display:inline-block;padding:2px 4px;margin-left:4px">
+        <option value="light">浅色（微信）</option>
+        <option value="dark">深色</option>
+      </select>
+    </span>
+    <span class="m" id="fswrap">字号
+      <select id="fs" style="width:auto;display:inline-block;padding:2px 4px;margin-left:4px">
+        <option value="13.5">小</option>
+        <option value="15">中</option>
+        <option value="17">大</option>
+        <option value="19">特大</option>
       </select>
     </span>
     <a class="btn" id="fmt">原文</a>
@@ -562,5 +634,25 @@ $('#fmt').addEventListener('click', function () {
 });
 renderSeg();
 $('#per').value = perMode;
+/* 主题：默认浅色（对齐微信观感），可切深色；选择记在 localStorage */
+let themeMode = localStorage.getItem('dshHistoryTheme') || 'light';
+function applyTheme(t) { document.body.classList.toggle('theme-light', t === 'light'); }
+$('#theme').addEventListener('change', function () {
+  themeMode = $('#theme').value;
+  localStorage.setItem('dshHistoryTheme', themeMode);
+  applyTheme(themeMode);
+});
+$('#theme').value = themeMode;
+applyTheme(themeMode);
+/* 正文字号：小/中/大/特大 */
+let fsMode = localStorage.getItem('dshHistoryFs') || '15';
+function applyFs(v) { document.getElementById('body').style.setProperty('--fs', v + 'px'); }
+$('#fs').addEventListener('change', function () {
+  fsMode = $('#fs').value;
+  localStorage.setItem('dshHistoryFs', fsMode);
+  applyFs(fsMode);
+});
+$('#fs').value = fsMode;
+applyFs(fsMode);
 loadSessions();
 </script></body></html>
