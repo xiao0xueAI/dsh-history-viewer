@@ -126,7 +126,28 @@ function esc(s) {
     return c === '<' ? '&lt;' : c === '>' ? '&gt;' : c === '&' ? '&amp;' : c === '"' ? '&quot;' : '&#39;';
   });
 }
-/* 上下文预览：去标记 + 截断，并标明方向（↑ 上一句 / ↓ 下一句） */
+/** 文本缓存里换行存成两个字符 "\n"，这里负责与真实换行互转 */
+function flat(s) { return String(s).split(NL).join(' '); }
+function unflat(s) { return String(s).split(NL).join(LF); }
+/** 把 Markdown 源码压成一行纯文本（搜索卡片的上/下文预览用，避免露出 ** ## ``` | 这些符号） */
+function plainMd(s) {
+  return String(s)
+    .replace(/`{3,}[a-zA-Z0-9+#-]*/g, ' ')
+    .replace(/`([^`]*)`/g, '$1')
+    .replace(/\*\*([^*]*)\*\*/g, '$1')
+    .replace(/(^|[^*\w])\*([^*]+)\*/g, '$1$2')
+    .replace(/~~([^~]*)~~/g, '$1')
+    .replace(/^\s*#{1,6}\s*/gm, '')
+    .replace(/^\s*>\s?/gm, '')
+    .replace(/^\s*[-*+]\s+/gm, '· ')
+    .replace(/^\s*:?-{3,}:?\s*$/gm, ' ')
+    .replace(/\[([^\]]*)\]\(([^)\s]+)\)/g, '$1')
+    .replace(/[|\t]/g, ' ')
+    .replace(/\*\*/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+/* 上下文预览：去标记 + 截断，并标明方向（上文 / 下文） */
 function ctxLine(s, arrow) {
   const t = plainMd(flat(s));
   return arrow + ' · ' + (t.length > 110 ? t.slice(0, 110) + '…' : t);
@@ -354,30 +375,7 @@ function renderList() {
   }
 }
 
-/* ---------- 正文 ---------- */
-function render(r, jumpT) {
-  const b = $('#body'); b.innerHTML = '';
-  for (const line of r.lines) {
-    const d = document.createElement('div');
-    d.className = 'msg ' + (line.kind || '');
-    d.dataset.t = line.t;
-    const who = document.createElement('div');
-    who.className = 'who';
-    who.textContent = (KIND[line.kind] || line.kind) + ' · ' + new Date(line.t).toLocaleString();
-    d.appendChild(who);
-    const content = document.createElement('div');
-    const text = unflat(line.text || '');
-    if (renderMd) { content.className = 'md'; content.innerHTML = md(text); }
-    else { content.className = 'raw'; content.textContent = text; }
-    d.appendChild(content);
-    b.appendChild(d);
-    if (q) highlightDom(content, q);
-  }
-  if (jumpT) {
-    const el = b.querySelector('.msg[data-t="' + jumpT + '"]');
-    if (el) { el.scrollIntoView({ block: 'center' }); el.classList.add('flash'); setTimeout(function () { el.classList.remove('flash'); }, 1900); }
-  } else b.scrollTop = 0;
-}
+/* ---------- 正文（分页） ---------- */
 let page = { id: '', offset: 0, limit: 300, total: 0, hasBefore: false, hasAfter: false };
 async function openSession(id, jumpT, offset) {
   const url = '/api/text?id=' + encodeURIComponent(id) + '&scope=' + scope + '&limit=' + page.limit +
