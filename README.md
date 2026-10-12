@@ -2,6 +2,19 @@
 
 **浏览、检索、导出你的 DSH 会话历史。** 纯本地读取会话日志，不依赖任何第三方插件，也不上传任何数据。
 
+[![npm](https://img.shields.io/npm/v/dsh-history-viewer?label=npm)](https://www.npmjs.com/package/dsh-history-viewer)
+[![GitHub](https://img.shields.io/badge/GitHub-xiao0xueAI%2Fdsh--history--viewer-blue)](https://github.com/xiao0xueAI/dsh-history-viewer)
+
+一句话安装（然后**重启一次 `dsh web`**、刷新页面，左栏底部就会出现 🕘）：
+
+```bash
+dsh plugin --profile web add dsh-history-viewer
+```
+
+> 本机 npm 源若是只读镜像（如 npmmirror）且装不到最新版，临时用官方源：
+> `npm_config_registry=https://registry.npmjs.org dsh plugin --profile web add dsh-history-viewer`
+
+
 > 为什么需要它：DSH 官方的历史类插件（如 `dsh-history`）已经不适配 0.2.x（peer 范围把新版本排除在外，启动时会被拒绝加载）。本插件直接读
 > `~/.dsh/sessions/**/session.v*.jsonl.zstd`，把历史变成可检索、可阅读、可导出的资源，插件生态怎么变都不影响它。
 
