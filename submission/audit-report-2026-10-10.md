@@ -121,7 +121,7 @@
 ## 8. 市场可发布性（对照 `PUBLISH.md`、`contributing.md`、`awesome-dsh-plugin-entry.yml`）
 
 - `dsh.bundle` 声明 **[硬条件]** ✅（`package.json:49-51`），`cordis.patch.yml` 在仓库根 ✅，真实代码 ✅，client 半体不 require client 包 ✅ —— `PUBLISH.md:8-13` 的自检项属实。
-- **条目文件本身**：`submission/awesome-dsh-plugin-entry.yml:1-6` 的字段形态（`url`/`name`/`category`/`description.en|zh`）与官方 `contributing.md` 完全一致 ✅；`url`/`name` 仍是 `CHANGE-ME` 占位符（P1，提交前必须改）；`category: ui` 合法，但插件同时具备很强的 `session` 属性，`PUBLISH.md:55` 也建议二选一（分类不会被打回，P2）。
+- **条目文件本身**：`submission/awesome-dsh-plugin-entry.yml:1-6` 的字段形态（`url`/`name`/`category`/`description.en|zh`）与官方 `contributing.md` 完全一致 ✅；`url`/`name` 仍是 `xiao0xueAI` 占位符（P1，提交前必须改）；`category: ui` 合法，但插件同时具备很强的 `session` 属性，`PUBLISH.md:55` 也建议二选一（分类不会被打回，P2）。
 - **缺的硬条件/推荐项**：
   1. `repository` 字段（**npm 关联硬条件**，`contributing.md` "npm package" 段；也影响 dshmarket 的"本地副本↔目录"身份匹配）——**P1**；
   2. 仓库 topic `dsh-plugin`（`contributing.md` 要求）——**P1**，且仓库需**创建满 1 天**（CI 自动查）✅ 已写在 `PUBLISH.md:26`；

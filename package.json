@@ -4,9 +4,9 @@
   "description": "DSH 会话历史查看器：项目内检索、渲染阅读、一键导出对话。会话历史不再依赖任何第三方插件。 · Browse, search and export your DSH session history — offline, no dependencies.",
   "type": "module",
   "license": "MIT",
-  "repository": { "type": "git", "url": "git+https://github.com/CHANGE-ME/dsh-history-viewer.git" },
-  "homepage": "https://github.com/CHANGE-ME/dsh-history-viewer#readme",
-  "bugs": { "url": "https://github.com/CHANGE-ME/dsh-history-viewer/issues" },
+  "repository": { "type": "git", "url": "git+https://github.com/xiao0xueAI/dsh-history-viewer.git" },
+  "homepage": "https://github.com/xiao0xueAI/dsh-history-viewer#readme",
+  "bugs": { "url": "https://github.com/xiao0xueAI/dsh-history-viewer/issues" },
   "publishConfig": { "access": "public" },
   "keywords": [
     "dsh",

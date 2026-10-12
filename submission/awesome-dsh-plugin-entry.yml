@@ -1,5 +1,5 @@
-url: https://github.com/CHANGE-ME/dsh-history-viewer
-name: CHANGE-ME/dsh-history-viewer
+url: https://github.com/xiao0xueAI/dsh-history-viewer
+name: xiao0xueAI/dsh-history-viewer
 category: ui
 description:
   en: Browses, searches and exports local DSH session history in the Web UI, with per-project filtering, pinned sessions, rendered Markdown results and jump-to-message search. Reads session logs directly and needs no third-party plugin.
