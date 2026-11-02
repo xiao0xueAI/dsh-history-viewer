@@ -28,7 +28,7 @@ const UI_FILE = path.join(DIR, 'ui.html');
 const WORKER_FILE = path.join(DIR, 'lib', 'index-worker.js');
 /** 索引重建冷却期：当前会话一直在写日志，"文件比索引新"永远为真，
  *  没有冷却期就会每次请求都重建（这正是"卡卡的"的根因）。 */
-const REBUILD_COOLDOWN_MS = 5 * 60 * 1000;
+const REBUILD_COOLDOWN_MS = 60 * 1000;   // 活跃会话写入很频繁：缩短到 60 秒，索引不再落后太多（原 5 分钟）
 
 export function apply(ctx, config = {}) {
   /** 本次运行随机令牌：界面从 HTML 里拿到，所有 /api/* 请求都要带上 */
