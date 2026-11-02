@@ -185,6 +185,7 @@
         <option value="19">特大</option>
       </select>
     </span>
+    <a class="btn" id="reindex" title="重新扫描会话文件，读取最新内容">刷新索引</a>
     <a class="btn" id="fmt">原文</a>
     <a class="btn" id="dl" style="display:none">导出这段对话</a>
   </header>
@@ -631,6 +632,16 @@ $('#fmt').addEventListener('click', function () {
   localStorage.setItem('dshHistoryRender', renderMd ? 'md' : 'raw');
   renderSeg();
   if (cur) openSession(cur.id);
+});
+$('#reindex').addEventListener('click', async function () {
+  const b = $('#reindex'); b.textContent = '重建中…';
+  try {
+    await api('/api/reindex');
+    for (let i = 0; i < 40; i++) { await new Promise(r => setTimeout(r, 1000)); const r2 = await (await api('/api/sessions')).json(); if (r2.ready && !r2.building) break; }
+    await loadSessions();
+    if (cur) await openSession(cur.id);
+    b.textContent = '刷新索引';
+  } catch (e) { b.textContent = '刷新失败'; setTimeout(function () { b.textContent = '刷新索引'; }, 2000); }
 });
 renderSeg();
 $('#per').value = perMode;
